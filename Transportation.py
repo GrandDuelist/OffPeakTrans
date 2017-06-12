@@ -1,7 +1,6 @@
 import csv 
 from Record import *
 from datetime import datetime
-import json
 from TransRegions import  *
 
 class Point():
@@ -65,10 +64,11 @@ class Trip():
         return (self.start.station_id,self.end.station_id)
 
 
-class Transportation():
+class Transportation(object):
     def __init__(self):
         self.dir_path = None
         self.file_path = None
+        self.region_handler = None
     def setFileDirectoryPath(self,dir_path):
         self.dir_path = dir_path
     def setFilePath(self,file_path):
@@ -116,15 +116,11 @@ class Transportation():
         lon = point[0]
         lat = point[1]
         target_region = self.region_handler.findPointTransRegion([lon,lat])
-        return target_region
+        if target_region is not None:
+            return target_region.getGeoID()
+        else:
+            return -1
 
-
-
-
-
-class LocalAnalysis():
-    def test(self):
-        print "test"
 
 class Subway(Transportation):
     def __init__(self):
@@ -397,7 +393,7 @@ class Taxi(Transportation):
         time_str = attrs[3]
         time_str = time_str.strip(".")
         time = self.parseTime(time_str)
-        if attrs[len(attrs)-2] == '1':
+        if attrs[len(attrs)-3] == '1':
             is_occupied = True
         else:
             is_occupied = False

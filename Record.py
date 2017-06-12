@@ -63,6 +63,7 @@ class TaxiRecord():
         self.plate = plate
         self.time = time
 
+
     def computeTargetRegion(self,taxi):
-        taxi.findPointInTransRegion([self.lon,self.lat])
+        self.trans_region = taxi.findPointInTransRegion([self.lon,self.lat])
 

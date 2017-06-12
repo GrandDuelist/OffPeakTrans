@@ -1,7 +1,7 @@
-from shapely.geometry import Polygon
-from scipy.spatial import distance
+#from shapely.geometry import Polygon
+#from scipy.spatial import distance
 import json
-import pdb
+#import pdb
 
 class Grid():
     '''
@@ -119,7 +119,7 @@ class RegionHandler():
                 one_grid = self.findPointGrid(vertice)
                 # if one_grid.isInGrid(vertice[0],vertice[1]):
                 one_grid.addIntersectTransRegion(one_region)
-                one_region.addGrid(one_grid)
+               # one_region.addGrid(one_grid)
                 # print len(one_region.getGrids())
 
 
@@ -140,14 +140,13 @@ class RegionHandler():
         return target_grid
 
     def findPointInRegions(self,point,regions):
-        print point
         for one_region in regions:
             if one_region.pointInRegion(point):
                 return one_region
         return None
 
     def pointInRange(self,point):
-        result =  point[0] > self.min_x  and point[0] < self.max_x and point[1] > self.min_y and point[1] < self.max_y
+        result =  point[0] >= self.min_x and point[0] <= self.max_x and point[1] >= self.min_y and point[1] <= self.max_y
         if not result:
             print "INFO: point not in range"
         return result
@@ -155,12 +154,12 @@ class RegionHandler():
         if not self.pointInRange(point):
             return None
         candidates = self.regionCandiates(point)
-        print "INFO: find point in candidate regions"
-        print "INFO: length of candidate ", len(candidates)
+        #print "INFO: find point in candidate regions"
+        #print "INFO: length of candidate ", len(candidates)
         result = self.findPointInRegions(point,candidates)
         if result is None:
-            print "INFO: find point in all regions"
-            print "INFO: length of transportation regions", len(self.transRegions)
+           # print "INFO: find point in all regions"
+            #print "INFO: length of transportation regions", len(self.transRegions)
             result = self.findPointInRegions(point,self.transRegions)
         return result
     def initializeGridRegion(self,file_path):

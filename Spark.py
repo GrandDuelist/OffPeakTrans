@@ -1,17 +1,11 @@
  #coding=utf-8
 from __future__ import print_function
-import os
-from hdfs import Config
-from hdfs import InsecureClient
-import sys
-from operator import add
 from pyspark import SparkConf
-from datetime import datetime
-from pyspark.sql import SparkSession
 from pyspark import SparkContext
 from Transportation import *
 import json
-import re
+from pyspark.files import SparkFiles
+
 class Spark():
     def __init__(self):
         self.sc = None
@@ -189,10 +183,20 @@ class TaxiSpark(Spark):
         self.taxi = Taxi()
         self.connect()
 
+    def buildRecordList(self):
+       test = SparkFiles.get("shenzhen_tran_simple_gps.json")
+       self.taxi.initPointRegionMapping(test)
+       #self.taxi.initPointRegionMapping('../data/shenzhen_tran_simple_gps.json')
+       self.record_list = self.input_data.map(self.taxi.parseRecord).filter(lambda record: record.is_occupied)
+       # self.record_list = self.record_list.map(lambda record: (record.plate,record.lon))
+       # self.record_list.saveAsTextFile('/zf72/test')
+       record_collect = self.record_list.collect()
+       for one_record in record_collect:
+            print(one_record.trans_region)
+
     def buildTravelTime(self):
         self.taxi.initPointRegionMapping('../data/shenzhen_tran_simple_gps.json')
-        record_group_user = self.input_data.map(self.taxi.parseRecord).filter(lambda record: record.is_occupied)\
-            .groupBy(lambda record: record.plate)
+        record_group_user = self.input_data.map(self.taxi.parseRecord).filter(lambda record: record.is_occupied).groupBy(lambda record: record.plate)
         self.record_group_user = record_group_user.mapValues(list).map(lambda (k,v): (k, sorted(v, key=lambda record: record.time)))
 
     def buildTripList(self):
