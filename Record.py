@@ -56,13 +56,13 @@ class BusRecord():
         pass
 
 class TaxiRecord():
-    def __init__(self,lon=None,lat=None,is_occupied=False,plate=None,time=None):
+    def __init__(self,lon=None,lat=None,is_occupied=False,plate=None,time=None,station_id = None):
         self.lon = lon
         self.lat = lat
         self.is_occupied = is_occupied
         self.plate = plate
         self.time = time
-
+        self.station_id = station_id
 
     def computeTargetRegion(self,taxi):
         self.trans_region = taxi.findPointInTransRegion([self.lon,self.lat])

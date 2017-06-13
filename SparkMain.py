@@ -70,6 +70,7 @@ class TaxiMain():
         self.taxi.setHDFSFilePath('/zf72/transportation_data/taxi_gps/taxi_gps_sample_2016_06_01')
         self.taxi.buildRecordList()
         self.taxi.buildTripList()
+        self.taxi.buildODTravelTime()
     def test(self):
         self.taxi.test()
 

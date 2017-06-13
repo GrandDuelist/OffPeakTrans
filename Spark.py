@@ -191,13 +191,20 @@ class TaxiSpark(Spark):
     def buildTripList(self):
         record_group_user = self.record_list.groupBy(lambda record: record.plate)
         sorted_record_group_user = record_group_user.mapValues(list).map(lambda (k,v): (k, sorted(v, key=lambda record: record.time)))
-        self.user_taxi_trip = sorted_record_group_user.map(self.taxi.parseRecordTotrip)
+        self.user_taxi_trip_list = sorted_record_group_user.map(self.taxi.parseRecordTotrip)
 
     def buildODTravelTime(self):
-        pass
+        od_trip_user = self.user_taxi_trip_list.flatMap(self.taxi.userTripToTripUser)
+        od_time_mapping = od_trip_user.map(lambda (k,v): (k,v[0].trip_time.total_seconds()))
+        self.od_minimum_time = od_time_mapping.reduceByKey(min)
+        trip_delay_time = 
+        #od_minimum_time = od_time_mapping.mapValues(list).map(self.taxi.odMinimumTravelTime)
 
-    def buildTravelTime(self):
-        pass
+        result = od_minimum_time.collect()
+        for one_record in result:
+            print(one_record)
+
+
 
 
     def test(self):

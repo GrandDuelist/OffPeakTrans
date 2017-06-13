@@ -71,8 +71,9 @@ class Trip():
         return self.waiting_time_to_min
     def originDestination(self):
         if self.start.station_id is None or self.end.startion_id is None:
-            return (self.start.lon,self.start.lat,self.end.lon,self.end.lat)
+            return (self.start.trans_region,self.end.trans_region)
         return (self.start.station_id,self.end.station_id)
+
 
 
 class Transportation(object):
@@ -427,7 +428,8 @@ class Taxi(Transportation):
                 one_trip.computeTripTime()
                 one_trip.timeSlot(t_min=5)
                 one_trip.arriveTimeSlot(t_min=5)
-                all_trips.append(one_trip)
+                if (one_trip.start.trans_region != one_trip.end.trans_region):
+                    all_trips.append(one_trip)
                 route = []
         return (plate,all_trips)
 
@@ -444,4 +446,11 @@ class Taxi(Transportation):
         for one_trip in trip_list:
             trip_user_array.append((one_trip.originDestination(),(one_trip,user_id)))
         return trip_user_array
+
+
+
+    # def odMinimumTravelTime(self,odd_travel_time_list):
+    #     (od, travel_time_list)  = odd_travel_time_list
+    #     for one_record in travel_time_list:
+    #         return
     
