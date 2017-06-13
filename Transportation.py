@@ -49,18 +49,29 @@ class Trip():
         if t_sec is not None:
             total_min = float(total_min) + float(t_sec)/float(60)
         return total_min
+
     def timeSlot(self,t_hour = None, t_min=None,t_sec = None):
         divide_min = self.timeToMin(t_hour,t_min,t_sec)
         start_min = self.timeToMin(self.start_time.hour,self.start_time.minute,self.start_time.second)
         slot = int(start_min/divide_min)
         self.timeslot = slot
         return slot
+
+    def arriveTimeSlot(self,t_hour=None,t_min=None, t_sec =None):
+        divide_min = self.timeToMin(t_hour,t_min,t_sec)
+        end_min = self.timeToMin(self.end_time.hour,self.end_time.minute,self.end_time.second)
+        slot = int(end_min/divide_min)
+        self.end_timeslot = slot
+        return slot
+
     def waitingTime(self,in_vehicle_time):
         # print in_vehicle_time
         self.waiting_time = self.trip_time - in_vehicle_time
         self.waiting_time_to_min = float(self.waiting_time.total_seconds())/float(60)
         return self.waiting_time_to_min
     def originDestination(self):
+        if self.start.station_id is None or self.end.startion_id is None:
+            return (self.start.lon,self.start.lat,self.end.lon,self.end.lat)
         return (self.start.station_id,self.end.station_id)
 
 
@@ -174,9 +185,6 @@ class Subway(Transportation):
                     else:
                         self.record_list[record.user_id].append(record)
         return self.record_list
-
-    def tripTime(self,start_record,end_record):
-        pass
 
     def buildTripList(self):
         if self.record_list is None:
@@ -412,18 +420,28 @@ class Taxi(Transportation):
         for ii in range(0,n_records):
             one_record = record_list[ii]
             route.append(one_record)
-            if ii == n_records or (record_list[ii+1].time - record_list[ii].time) < 600:
+            if ii == n_records-1 or (record_list[ii+1].time - record_list[ii].time).total_seconds < 600:
                 start = route[0]
                 end = route[-1]
                 one_trip = Trip(start=start,end=end,route=route,start_time=start.time,end_time=end.time)
                 one_trip.computeTripTime()
+                one_trip.timeSlot(t_min=5)
+                one_trip.arriveTimeSlot(t_min=5)
                 all_trips.append(one_trip)
                 route = []
         return (plate,all_trips)
 
-
-
-
-
-
-
+    def tripListToODTime(self,user_trip_list):
+        (user_id,trip_list) = user_trip_list
+        od_trip_time = []
+        for one_trip in trip_list:
+            od_trip_time.append((one_trip.originDestination(), one_trip.trip_time.total_seconds()))
+        return od_trip_time
+    
+    def userTripToTripUser(self,user_trip_list):
+        (user_id, trip_list) = user_trip_list
+        trip_user_array = []
+        for one_trip in trip_list:
+            trip_user_array.append((one_trip.originDestination(),(one_trip,user_id)))
+        return trip_user_array
+    

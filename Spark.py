@@ -186,27 +186,21 @@ class TaxiSpark(Spark):
     def buildRecordList(self):
        test = SparkFiles.get("shenzhen_tran_simple_gps.json")
        self.taxi.initPointRegionMapping(test)
-       #self.taxi.initPointRegionMapping('../data/shenzhen_tran_simple_gps.json')
        self.record_list = self.input_data.map(self.taxi.parseRecord).filter(lambda record: record.is_occupied)
-       # self.record_list = self.record_list.map(lambda record: (record.plate,record.lon))
-       # self.record_list.saveAsTextFile('/zf72/test')
-       record_collect = self.record_list.collect()
-       for one_record in record_collect:
-            print(one_record.trans_region)
-
-    def buildTravelTime(self):
-        self.taxi.initPointRegionMapping('../data/shenzhen_tran_simple_gps.json')
-        record_group_user = self.input_data.map(self.taxi.parseRecord).filter(lambda record: record.is_occupied).groupBy(lambda record: record.plate)
-        self.record_group_user = record_group_user.mapValues(list).map(lambda (k,v): (k, sorted(v, key=lambda record: record.time)))
 
     def buildTripList(self):
-        taxi_trip = self.record_group_user.map(self.taxi.parseRecordTotrip)
-        record_group_user_collect = self.record_group_user.collect()
-        for one_record_list in record_group_user_collect:
-            print(one_record_list)
+        record_group_user = self.record_list.groupBy(lambda record: record.plate)
+        sorted_record_group_user = record_group_user.mapValues(list).map(lambda (k,v): (k, sorted(v, key=lambda record: record.time)))
+        self.user_taxi_trip = sorted_record_group_user.map(self.taxi.parseRecordTotrip)
+
+    def buildODTravelTime(self):
+        pass
+
+    def buildTravelTime(self):
+        pass
+
 
     def test(self):
-
         # mapping = self.sc.textFile("/zf72/data/edges/shenzhen_tran_simple_gps.json").cache()
         # t = mapping.map(json.loads).collect()
         test = json.load(open('../data/shenzhen_tran_simple_gps.json'))

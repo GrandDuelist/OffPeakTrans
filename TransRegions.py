@@ -147,8 +147,8 @@ class RegionHandler():
 
     def pointInRange(self,point):
         result =  point[0] >= self.min_x and point[0] <= self.max_x and point[1] >= self.min_y and point[1] <= self.max_y
-        if not result:
-            print "INFO: point not in range"
+        # if not result:
+        #     print "INFO: point not in range"
         return result
     def findPointTransRegion(self,point):
         if not self.pointInRange(point):
@@ -170,7 +170,7 @@ class RegionHandler():
         self.min_y = minmax['min_y']
         self.max_x = minmax['max_x']
         self.max_y = minmax['max_y']
-        self.buildGrids(100,100)
+        self.buildGrids(50,50)
         self.buildTransRegions(out_edge)
         self.mapRegionToGrid()
 

@@ -69,6 +69,7 @@ class TaxiMain():
        # self.taxi.setLocalFilePath("/media/zf72/Seagate Backup Plus Drive/E/DATA/SmartCityRawData/sz/sample/taxi_gps_sample_2016_06_01")
         self.taxi.setHDFSFilePath('/zf72/transportation_data/taxi_gps/taxi_gps_sample_2016_06_01')
         self.taxi.buildRecordList()
+        self.taxi.buildTripList()
     def test(self):
         self.taxi.test()
 
