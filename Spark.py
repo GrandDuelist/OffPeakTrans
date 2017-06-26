@@ -122,11 +122,14 @@ class SubwaySpark(Spark):
         self.subway.end_station = end_station
 
     def buildNoUserTripList(self):
-        self.user_trip_pair.flatMap(self.subway.userTripToNoUserTripList).filter(self.subway.filterByStartEndStation)
+       self.trip_list =  self.user_trip_pair.flatMap(self.subway.userTripToNoUserTripList)
 
     def filterTripListByStartEndStation(self,start_station=None,end_station=None):
         self.setStartEndStation(start_station=start_station,end_station=end_station)
-        filter_user_trip_pair = self.user_trip_pair.map()
+        filtered_trip_list = self.trip_list.filter(self.subway.filterByStartEndStation)
+        for one_record in filtered_trip_list.collect():
+            # print(one_record)
+            print(one_record.start.station_name + one_record.end.station_name)
 
     def buildInVehicleTime(self):
         trip_time_pair = self.user_trip_pair.flatMap(self.subway.mapToStationTimeMapping)

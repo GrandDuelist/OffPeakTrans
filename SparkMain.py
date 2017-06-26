@@ -64,8 +64,12 @@ class SubwayMain():
     def inStationsAverageWalkingTime(self):
         pass
 
-    def travelTimeBetweenTwoStation(self,from_station,to_station):
-        pass
+    def travelTimeBetweenTwoStation(self):
+        self.subway.setHDFSFilePath("/zf72/transportation_data/sample/input/SZT_sample_0601.txt")
+        self.subway.buildRecordList()
+        self.subway.buildTripList()
+        self.subway.buildNoUserTripList()
+        self.subway.filterTripListByStartEndStation("世界之窗","华侨城")
 
 class BusMain():
     def __init__(self):
@@ -169,6 +173,6 @@ class PVMain():
 
 
 if __name__ == "__main__":
-    taxi = TaxiMain()
+    tran = SubwayMain()
     # pv.travelDelayTimeOneDayByHours()
-    taxi.travelTimeOneDayByHoursFilterByStartEndDistricts()
+    tran.travelTimeBetweenTwoStation()

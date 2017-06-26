@@ -1,4 +1,5 @@
-import csv 
+#coding=utf-8
+import csv
 from Record import *
 from datetime import datetime
 from TransRegions import  *
@@ -104,7 +105,8 @@ class Transportation(object):
             return b
         else:
             return a
-
+    def parseTime(self,timeStr):
+        return datetime.strptime(timeStr,'%Y-%m-%d %H:%M:%S')
     def isInTranRegion(self,sc):
         simple_region_file_path = "hdfs://namenode:9000/zf72/data/shenzhen_tran_simple_gps.json"
         region_file = sc.textFile(simple_region_file_path)
@@ -314,11 +316,11 @@ class Subway(Transportation):
         if self.start_station is None and self.end_station is None:
             return(True)
         elif self.start_station is not None and self.end_station is not None:
-            return(self.start_station == one_trip.start.station_name and self.end_station == one_trip.end.station_name)
+            return(self.start_station == one_trip.start.station_name.strip('站') and self.end_station == one_trip.end.station_name.strip('站'))
         elif self.end_station is not None:
-            return(self.end_station == one_trip.end.station_name)
+            return(self.end_station == one_trip.end.station_name.strip('站'))
         elif self.start_station is not None:
-            return(self.start_station == one_trip.start.station_name)
+            return(self.start_station == one_trip.start.station_name.strip('站'))
 
 
 
@@ -332,6 +334,7 @@ class Subway(Transportation):
                 district_name = attrs[3]
                 self.station_districts[station_name] = district_name
         return self.station_districts
+
     def stationDistrictMappingOneLine(self,one_line):
         attrs = one_line.split(',')
         station_name = attrs[0]
@@ -418,8 +421,7 @@ class Bus(Transportation):
             return True
         else:
             return False
-    def parseTime(self,timeStr):
-        return datetime.strptime(timeStr,'%Y-%m-%d %H:%M:%S')
+
     def maskFunction(self,current_id_str):
         id_len = len(current_id_str)
         current_id = [v for v in current_id_str]
