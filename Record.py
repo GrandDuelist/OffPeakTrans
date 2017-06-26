@@ -63,7 +63,36 @@ class TaxiRecord():
         self.plate = plate
         self.time = time
         self.station_id = station_id
+        self.trans_region = None
+        self.district = None
 
     def computeTargetRegion(self,taxi):
         self.trans_region = taxi.findPointInTransRegion([self.lon,self.lat])
 
+    def computeTargetDistrict(self,taxi):
+        self.district = taxi.findPointInDistrict([self.lon,self.lat])
+
+class PVRecord():
+    def __init__(self,pv_id=None,lat=None,lon=None,time=None,station_id = None):
+        self.pv_id = pv_id
+        self.lat = lat
+        self.lon = lon
+        self.time = time
+        self.station_id = station_id
+
+    def computeTargetRegion(self,pv):
+        self.trans_region = pv.findPointInTransRegion([self.lon,self.lat])
+
+    def computeTargetDistrict(self,pv):
+        self.district = pv.findPointInDistrict([self.lon,self.lat])
+
+
+
+class SubwayRouteRecord():
+    def __init__(self,line_num=None,station_name=None,transfer=None,translate=None,order = None,one_line = None):
+        self.line_num = line_num
+        self.station_name = station_name
+        self.transfer =transfer
+        self.translate = translate
+        self.one_line = one_line
+        self.order =order

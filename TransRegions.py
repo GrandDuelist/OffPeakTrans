@@ -37,6 +37,28 @@ class Grid():
     def getIntersectTransRegion(self):
         return self.intersectTransRegion
 
+class District():
+    def __init__(self,vertices,district_id):
+        self.vertices = vertices
+        self.district_id = district_id
+
+    def pnpoly(self,vertices,testx,testy):
+        nvert = len(vertices)
+        c = False
+        j = nvert - 1
+        for i in range(0,nvert):
+            if ( ((vertices[i][1] > testy) != (vertices[j][1] > testy)) and (testx
+                    <((vertices[j][0]-vertices[i][0])*(testy-vertices[i][1])/(vertices[j][1]-vertices[i][1]) +
+                        vertices[i][0]))):
+                        c = not c
+            j = i
+        return c
+
+    def pointInDistrict(self,point):
+        return self.pnpoly(self.vertices,point[0],point[1])
+    def getGeoID(self):
+        return self.district_id
+
 
 class TransRegion():
     def __init__(self,vertices,region_id):
@@ -54,12 +76,7 @@ class TransRegion():
     def getVertices(self):
         return self.vertices
     def pnpoly(self,vertices,testx,testy):
-        # print self.vertices
-        # print vertices
         nvert = len(vertices)
-        # if vertices[0] == vertices[nvert-1]:
-        #     vertices = vertices[0:-1]
-        # nvert = len(vertices)
         c = False
         j = nvert - 1
         for i in range(0,nvert):
@@ -74,6 +91,35 @@ class TransRegion():
 
     def getGeoID(self):
         return self.region_id
+
+class DistrictHandler():
+    def __init__(self,minmax=None):
+        self.districts = None
+    def buildDistricts(self,out_edge):
+        districts = []
+        for one_region in out_edge:
+            geo_array = one_region['geo_array']
+            geo_id  = one_region['geo_id']
+            one_region = District(geo_array,geo_id)
+            districts.append(one_region)
+        self.districts = districts
+    def pointInRange(self,point):
+        result =  point[0] >= self.min_x and point[0] <= self.max_x and point[1] >= self.min_y and point[1] <= self.max_y
+        return result
+    def findPointInDistrict(self,point):
+        for one_district in self.districts:
+            if one_district.pointInDistrict(point):
+                return one_district
+        return None
+    def initDistritts(self,file_path):
+        simple_gps = json.load(open(file_path))
+        out_edge = simple_gps['out_edge']
+        minmax = simple_gps['minmax']
+        self.min_x = minmax['min_x']
+        self.min_y = minmax['min_y']
+        self.max_x = minmax['max_x']
+        self.max_y = minmax['max_y']
+        self.buildDistricts(out_edge)
 
 
 class RegionHandler():
@@ -150,6 +196,7 @@ class RegionHandler():
         # if not result:
         #     print "INFO: point not in range"
         return result
+
     def findPointTransRegion(self,point):
         if not self.pointInRange(point):
             return None
@@ -162,6 +209,7 @@ class RegionHandler():
             #print "INFO: length of transportation regions", len(self.transRegions)
             result = self.findPointInRegions(point,self.transRegions)
         return result
+
     def initializeGridRegion(self,file_path):
         simple_gps = json.load(open(file_path))
         out_edge = simple_gps['out_edge']
