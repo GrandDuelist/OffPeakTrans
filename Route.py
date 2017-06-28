@@ -18,6 +18,10 @@ class SubwayRouteHandler(RouteHandler):
         self.routes = []
         self.existing_routes = {}
         self.station_line_mapping = None
+        self.target_station = None
+        self.target_previous_stations = None
+        self.target_latter_stations = None
+        self.target_pair_stations = None
 
     def parseOneLine(self,one_line):
         attrs = one_line.split(',')
@@ -68,22 +72,90 @@ class SubwayRouteHandler(RouteHandler):
     def findLatterStationsInSameLine(self,station_name):
         target_lines = self.station_line_mapping[station_name]
         latter_stations = {}
-        print(target_lines)
         for one_line in target_lines:
             one_route = self.routes[self.existing_routes[one_line]]
             stations = one_route.station_names
             latter_stations[one_line] = stations[stations.index(station_name)+1:]
         return(latter_stations)
 
-    def getTripsAroundStationForWalkingTime(self,target_station):
-        previous_stations = self.findPreviousStationsInSameLine(station_name=target_station)
-        latter_stations = self.findLatterStationsInSameLine(station_name=target_station)
-        
+    def findTripsAroundStationForWalkingTime(self,target_station):
+        previous_stations_json = self.findPreviousStationsInSameLine(station_name=target_station)
+        latter_stations_json = self.findLatterStationsInSameLine(station_name=target_station)
+        all_key_pairs = {}
+        all_pairs = []
+        all_keys = previous_stations_json.keys()
+        for one_key in all_keys:
+            previous_stations = previous_stations_json[one_key]
+            latter_stations = latter_stations_json[one_key]
+            one_key_result = []
+            for one_previous_station in previous_stations:
+                for one_latter_station in latter_stations:
+                    one_key_result.append([one_previous_station,one_latter_station])
+                    all_pairs.append([one_previous_station,one_latter_station])
+            all_key_pairs[one_key] = one_key_result
+        return(all_key_pairs,all_pairs)
 
+    def setTargetStation(self,target_station):
+        self.target_station = target_station
+
+    def buildTargetPreviousStations(self):
+        self.target_previous_stations = self.findPreviousStationsInSameLine(self.target_station)
+
+    def buildTargetLatterStations(self):
+        self.target_latter_stations = self.findLatterStationsInSameLine(self.target_station)
+
+    def buildTargetStationPairs(self):
+        (keY_pairs,all_pairs) = self.findTripsAroundStationForWalkingTime(self.target_station)
+        self.target_station_pairs = all_pairs
+
+    def inPreviousStation(self,one_station):
+        for one_key in self.target_previous_stations.keys():
+            one_key_stations = self.target_previous_stations[one_key]
+            if one_station in one_key_stations:
+                return(True)
+        return(False)
+
+    def inLatterStation(self,one_station):
+        for one_key in self.target_latter_stations.keys():
+            one_key_stations = self.target_latter_stations[one_key]
+            if one_station in one_key_stations:
+                return(True)
+        return(False)
+    def tripInPreviousLatterSameLine(self,start_station,end_station):
+        for one_key in self.target_previous_stations.keys():
+            one_key_previous_stations = self.target_previous_stations[one_key]
+            one_key_latter_stations = self.target_latter_stations[one_key]
+            if start_station in one_key_previous_stations and end_station in one_key_latter_stations:
+                return(True)
+        return(False)
+
+    def filterTripByPreviousStartAndTargetStation(self,one_trip):
+        if self.inPreviousStation(one_trip.start.station_name) and one_trip.end.station_name == self.target_station:
+            return(True)
+        return(False)
+
+    def filterTripByTargetStationAndPreviousStation(self,one_trip):
+        if self.inPreviousStation(one_trip.end.station_name) and one_trip.start.station_name == self.target_station:
+            return(True)
+        return(False)
+
+    def filterTripByTargetStationAndLatterStations(self,one_trip):
+        if self.target_station == one_trip.start.station_name and self.inLatterStation(one_trip.end.station_name):
+            return(True)
+        return(False)
+
+    def filterTripByLatterStationAndTargetStation(self,one_trip):
+        if self.target_station == one_trip.end.station_name and self.inLatterStation(one_trip.start.station_name):
+            return(True)
+        return(False)
+
+    def filterTripByPreviousLatterSameLine(self,one_trip):
+        result = self.tripInPreviousLatterSameLine(start_station=one_trip.start.station_name,end_station=one_trip.end.station_name)
+        return(result)
 #
 # if __name__=='__main__':
 #     subwayRoute= SubwayRouteHandler()
-#     subwayRoute.buildRoutes("/media/zf72/Seagate Backup Plus Drive/E/DATA/edges/shenzhen_subway_station_line.csv")
-#     subwayRoute.buildStationLineMap("/media/zf72/Seagate Backup Plus Drive/E/DATA/edges/shenzhen_subway_station_line.csv")
-#     previous_stations = subwayRoute.findPreviousStationsInSameLine("车公庙")
-#     print(previous_stations.keys())
+#     subwayRoute.buildRoutes("../data/shenzhen_subway_station_line.csv")
+#     subwayRoute.buildStationLineMap("../data/shenzhen_subway_station_line.csv")
+#     (all_key_pairs, all_pairs) = subwayRoute.getTripsAroundStationForWalkingTime("车公庙")
+#     print(all_pairs)

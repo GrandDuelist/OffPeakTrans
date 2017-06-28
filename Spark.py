@@ -35,6 +35,7 @@ class Spark():
         sc.addFile("exploring/TransRegions.py")
         sc.addFile("exploring/__init__.py")
         sc.addFile('exploring/SparkLocalMain.py')
+        sc.addFile('exploring/Route.py')
         self.sc =sc
 
     def connectToDesktop(self):
@@ -73,9 +74,10 @@ class SubwaySpark(Spark):
         self.connect()
         self.addExternalFiles()
 
+
     def addExternalFiles(self):
         self.sc.addFile("data/shenzhen_subway_station_line.csv")
-        subway_station_line = SparkFiles.get("shenzhen_subway_station_line.csv")
+        self.subway_station_line = SparkFiles.get("shenzhen_subway_station_line.csv")
 
     def buildRecordList(self):
         '''
@@ -196,8 +198,26 @@ class SubwaySpark(Spark):
             result = self.trip_average_time.collect()
             print(result)
 
-    def filterWalkingTime(self,one_trip):
-        pass
+    def filterTripListByWalkingTimeStation(self,target_station):
+        self.subway.initWalkingTimeStationLine(self.subway_station_line,target_station)
+        #get end station trip
+        start_target = self.trip_list.filter(self.subway.routeHandler.filterTripByPreviousStartAndTargetStation)\
+            .map(lambda one_trip: ((one_trip.arriveTimeSlot(t_hour=1),one_trip.start.station_name,one_trip.end.station_name),one_trip))\
+            .reduceByKey(self.subway.minimumTripByKey).map(lambda (a,b): b).flatMap(self.subway.mapToLineTarget)
+        for one_record in start_target.collect():
+            print(one_record)
+        # #get start station trip
+        # target_start = self.trip_list.filter(self.subway.routeHandler.filterTripByTargetStationAndPreviousStation)\
+        #     .flatMap(self.subway.mapToLineTarget)
+        # #get cross trip
+        # target_end = self.trip_list.filter(self.subway.routeHandler.filterTripByTargetStationAndLatterStations)\
+        #     .flatMap(self.subway.mapToLineTarget)
+        # end_target = self.trip_list.filter(self.subway.routeHandler.filterTripByLatterStationAndTargetStation)\
+        #     .flatMap(self.subway.mapToLineTarget)
+        # start_end = start_target.join(target_end).union(end_target.join(target_start))
+        # start_end_time = start_end.map()
+        # two_station_trip_list = self.trip_list.filter(self.subway.routeHandler.filterTripByPreviousLatterSameLine)
+
     
     def buildWaitingTimeInDistricts(self):
         self.subway.buildStationNameDistrictMapping('/media/zf72/Seagate Backup Plus Drive/E/DATA/edges/subway station/station_with_region.txt')

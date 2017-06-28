@@ -288,8 +288,6 @@ class Subway(Transportation):
         ((start_station,end_station),(trip,in_vechile_time)) = one_trip
         return(self.filterByStartEndStation(trip))
 
-    def inSubwayTime(self):
-        pass
     def waitingTimeOneDay(self):
         self.buildRecordList()
         self.buildTripList()
@@ -347,6 +345,7 @@ class Subway(Transportation):
         station_name = attrs[0]
         district_name = attrs[3]
         return (station_name,district_name)
+
     def mapStationNameToDistrict(self,station_name):
         if self.station_districts is None:
             print "ERROR: %s" % "station mapping is none, call buildStationNameDistrictMapping"
@@ -406,9 +405,31 @@ class Subway(Transportation):
             trip_userids.append((user_id,one_trip))
         return trip_userids
 
-    def removeDuplicateInMapping(self,a,b):
-        return a
+    def initWalkingTimeStationLine(self,file_path,target_station):
+        self.routeHandler = SubwayRouteHandler()
+        self.routeHandler.setTargetStation(target_station=target_station)
+        self.routeHandler.buildRoutes(file_path=file_path)
+        self.routeHandler.buildStationLineMap(file_path=file_path)
+        self.routeHandler.buildTargetLatterStations()
+        self.routeHandler.buildTargetPreviousStations()
+        self.routeHandler.buildTargetStationPairs()
 
+    def mapToLineTarget(self,one_trip):
+        start_lines = self.routeHandler.station_line_mapping[one_trip.start.station_name]
+        end_lines = self.routeHandler.station_line_mapping[one_trip.end.station_name]
+        intersect_lines = list(set(start_lines).intersection(end_lines))
+        output = []
+        for one_line in intersect_lines:
+            output.append(((one_line,self.routeHandler.target_station),one_trip))
+        return(output)
+
+    def minimumTripByKey(self,a,b):
+        if a.trip_time.total_seconds() > b.trip_time.total_seconds():
+            return(b)
+        else:
+            return(a)
+    # def filterByWalkingTimeStart(self,one_trip_record):
+    #     pass
 #************************************************
 class Bus(Transportation):
     def __init__(self):

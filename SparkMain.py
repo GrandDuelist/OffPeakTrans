@@ -110,8 +110,9 @@ class SubwayMain():
 
     def walkingTimeEstimation(self):
         target_station = "坂田"
-        self.subway.setHDFSFilePath("/zf72/transportation_data/sample/input/SZT_sample_0601.txt")
-        #self.subway.setHDFSFilePath("/zf72/transportation_data/subway/input/"+file_name)
+        file_name = 'P_GJGD_SZT_20160601'
+        # self.subway.setHDFSFilePath("/zf72/transportation_data/sample/input/SZT_sample_0601.txt")
+        self.subway.setHDFSFilePath("/zf72/transportation_data/subway/input/"+file_name)
         self.subway.buildRecordList()
         self.subway.buildTripList()
         self.subway.buildNoUserTripList()
@@ -222,4 +223,4 @@ class PVMain():
 if __name__ == "__main__":
     tran = SubwayMain()
     # pv.travelDelayTimeOneDayByHours()
-    tran.waitingTimeFilterByStartStation()
+    tran.walkingTimeEstimation()
