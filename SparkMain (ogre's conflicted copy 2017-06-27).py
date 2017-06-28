@@ -25,8 +25,6 @@ class SubwayMain():
         #subway.saveAverageTripTime("file:/home/zf72/Dropbox/projects/off-peak-trans/data/SZT_RESULT/P_GJGD_SZT_20160601",local=True)
 
 
-
-
     def waitingTimeFilterByStartDistrict(self,start_district,subway=None):
         if subway is None:
             subway = SubwaySpark()
@@ -66,57 +64,12 @@ class SubwayMain():
     def inStationsAverageWalkingTime(self):
         pass
 
-    def waitingTimeInTwoStations(self):
-        start_station = "世界之窗"
-        end_station = "华侨城"
-        file_name = 'P_GJGD_SZT_20160601'
-        type_name = "waiting_time"
-        # self.subway.setHDFSFilePath("/zf72/transportation_data/sample/input/SZT_sample_0601.txt")
-        self.subway.setHDFSFilePath("/zf72/transportation_data/subway/input/P_GJGD_SZT_20160601")
-        self.subway.buildRecordList()
-        self.subway.buildTripList()
-        self.subway.buildInVehicleTime()
-        time_waiting_time = self.subway.buildWaitingTimeInTwoStations(start_station=start_station,end_station=end_station)
-        time_waiting_time.saveAsTextFile('/zf72/transportation_data/subway/output/'+file_name+'/'+start_station+'_'+end_station+'_'+type_name)
-
-
-    def waitingTimeFilterByStartStation(self):
-        start_station = "坂田"
-        end_station =None
-        file_name = 'P_GJGD_SZT_20160601'
-        type_name = "waiting_time"
-        # self.subway.setHDFSFilePath("/zf72/transportation_data/sample/input/SZT_sample_0601.txt")
-        self.subway.setHDFSFilePath("/zf72/transportation_data/subway/input/P_GJGD_SZT_20160601")
-        self.subway.buildRecordList()
-        self.subway.buildTripList()
-        self.subway.buildInVehicleTime()
-        time_waiting_time = self.subway.buildWaitingTimeInTwoStations(start_station=start_station,end_station=end_station)
-        time_waiting_time.saveAsTextFile('/zf72/transportation_data/subway/output/'+file_name+'/'+start_station+'_'+type_name)
-
-
-
     def travelTimeBetweenTwoStation(self):
-        start_station = "世界之窗"
-        end_station = "华侨城"
-        file_name = 'P_GJGD_SZT_20160601'
-        #self.subway.setHDFSFilePath("/zf72/transportation_data/sample/input/SZT_sample_0601.txt")
-        self.subway.setHDFSFilePath("/zf72/transportation_data/subway/input/"+file_name)
-        self.subway.buildRecordList()
-        self.subway.buildTripList()
-        self.subway.buildNoUserTripList()
-        self.subway.filterTripListByStartEndStation(start_station,end_station)
-        trip_time = self.subway.tripStartTimeVsTravelTime()
-        trip_time.saveAsTextFile('/zf72/transportation_data/subway/output/'+file_name+'/'+start_station+'_'+end_station)
-
-    def walkingTimeEstimation(self):
-        target_station = "坂田"
         self.subway.setHDFSFilePath("/zf72/transportation_data/sample/input/SZT_sample_0601.txt")
-        #self.subway.setHDFSFilePath("/zf72/transportation_data/subway/input/"+file_name)
         self.subway.buildRecordList()
         self.subway.buildTripList()
         self.subway.buildNoUserTripList()
-        self.subway.filterTripListByWalkingTimeStation(target_station)
-
+        self.subway.filterTripListByStartEndStation("世界之窗","华侨城")
 
 class BusMain():
     def __init__(self):
@@ -222,4 +175,4 @@ class PVMain():
 if __name__ == "__main__":
     tran = SubwayMain()
     # pv.travelDelayTimeOneDayByHours()
-    tran.waitingTimeFilterByStartStation()
+    tran.travelTimeBetweenTwoStation()

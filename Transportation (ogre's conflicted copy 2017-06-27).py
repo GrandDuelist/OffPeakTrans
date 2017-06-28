@@ -3,7 +3,6 @@ import csv
 from Record import *
 from datetime import datetime
 from TransRegions import  *
-from Route import *
 
 class Point():
     def __init__(self,x,y,name=None):
@@ -77,7 +76,7 @@ class Trip():
         self.waiting_time_to_min = float(self.waiting_time.total_seconds())/float(60)
         return self.waiting_time_to_min
     def originDestination(self):
-        if self.start.station_id is None or self.end.station_id is None:
+        if self.start.station_id is None or self.end.startion_id is None:
             return (self.start.trans_region,self.end.trans_region)
         return (self.start.station_id,self.end.station_id)
 
@@ -187,10 +186,6 @@ class Subway(Transportation):
         self.start_station = None
         self.end_station = None
         # self.buildStationNameDistrictMapping('/zf72/data/station_with_region.txt')
-    def initSubwayMapping(self,file_path):
-        route = SubwayRouteHandler()
-        route.buildStationLineMap(file_path)
-        route.buildStationLineMap(file_path)
 
     def subwayOneRow(self,row):
         attrs = row.split(",")
@@ -284,10 +279,8 @@ class Subway(Transportation):
                     min_trip_time = one_trip.trip_time
             self.in_vehicle_time[one_key] = min_trip_time
             
-    def filterWaitingTimeByStartEndStation(self,one_trip):
-        ((start_station,end_station),(trip,in_vechile_time)) = one_trip
-        return(self.filterByStartEndStation(trip))
-
+    def waitingTime(self):
+        pass 
     def inSubwayTime(self):
         pass
     def waitingTimeOneDay(self):
@@ -392,7 +385,7 @@ class Subway(Transportation):
         return od_time
     def mapToTripWaitingTime(self,user_trip_in_vehicle_time):
         (od,(one_trip,in_vehicle_time)) = user_trip_in_vehicle_time
-        return (one_trip.timeSlot(t_sec=1), one_trip.start.time,one_trip.trip_time.total_seconds() - in_vehicle_time)
+        return (one_trip.timeSlot(t_min=60), one_trip.start.time,one_trip.trip_time.total_seconds() - in_vehicle_time)
 
     def tripClusterWithRegion(self,id_trip_list):
         (user_id, trip_list) = id_trip_list

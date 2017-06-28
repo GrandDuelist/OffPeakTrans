@@ -18,14 +18,12 @@ class Spark():
     def setLocalInputFile(self,inputFile):
         self.input_data = self.sc.parallelize(inputFile)
 
-
-
     def connectToSchool(self):
         conf=SparkConf()
         conf.setMaster("spark://namenode:7077")
         conf.setAppName("off-peak")
-        conf.set("spark.executor.memory", "54g")
-        conf.set("spark.executor.cores", "8")
+        conf.set("spark.executor.memory", "128g")
+        conf.set("spark.executor.cores", "16")
         conf.set("spark.scheduler.mode", "FAIR")
         sc = SparkContext(conf=conf)
         sc.addPyFile("Module/Shapely-1.6b4.zip")
@@ -71,11 +69,6 @@ class SubwaySpark(Spark):
         self.trip_average_time  = None
         self.in_vehicle_time = None
         self.connect()
-        self.addExternalFiles()
-
-    def addExternalFiles(self):
-        self.sc.addFile("data/shenzhen_subway_station_line.csv")
-        subway_station_line = SparkFiles.get("shenzhen_subway_station_line.csv")
 
     def buildRecordList(self):
         '''
@@ -116,7 +109,6 @@ class SubwaySpark(Spark):
         filter_user_trip_pair = filter_user_trip_pair.map(lambda (k,v): (v[0][1],v[0][0])).groupByKey().mapValues(list)
         self.user_trip_pair = filter_user_trip_pair
 
-    
 
     def filterTripListByDestinationDistrict(self):
         user_trip_pair = self.user_trip_pair.flatMap(self.subway.user_trip_to_trip_user)
@@ -134,27 +126,15 @@ class SubwaySpark(Spark):
 
     def filterTripListByStartEndStation(self,start_station=None,end_station=None):
         self.setStartEndStation(start_station=start_station,end_station=end_station)
-        self.filtered_trip_list = self.trip_list.filter(self.subway.filterByStartEndStation)
-
-    def tripStartTimeVsTravelTime(self):
-        self.trip_start_time = self.filtered_trip_list.map(lambda trip: (trip.timeSlot(t_min=1),trip.trip_time.total_seconds()))
-        return(self.trip_start_time)
+        filtered_trip_list = self.trip_list.filter(self.subway.filterByStartEndStation)
+        for one_record in filtered_trip_list.collect():
+            # print(one_record)
+            print(one_record.start.station_name + one_record.end.station_name)
 
     def buildInVehicleTime(self):
         trip_time_pair = self.user_trip_pair.flatMap(self.subway.mapToStationTimeMapping)
         self.in_vehicle_time = trip_time_pair.reduceByKey(self.subway.minimumByKey)
         #self.in_vehicle_time.saveAsTextFile('/zf72/transportation_data/result/in_vehicle_time/0601')
-
-    def buildWaitingTimeInTwoStations(self,start_station=None,end_station=None):
-        self.setStartEndStation(start_station,end_station)
-        user_trips_in_vehicle_time = self.user_trip_pair.flatMap(self.subway.mapToODTrip).join(self.in_vehicle_time)
-        filter_user_trips_in_vehicle_time = user_trips_in_vehicle_time.filter(self.subway.filterWaitingTimeByStartEndStation)
-        # for one_record in filter_user_trips_in_vehicle_time.collect():
-        #     print(one_record[1][0].start.station_name+","+one_record[1][0].end.station_name)
-        self.timeslot_waiting_time = filter_user_trips_in_vehicle_time.map(self.subway.mapToTripWaitingTime).map(lambda (k,v1,v2): (k,v2))
-        return(self.timeslot_waiting_time)
-
-
 
     def buildWaitingTime(self,output_file_name):
         #read in_vehicle_time mapping
@@ -196,9 +176,7 @@ class SubwaySpark(Spark):
             result = self.trip_average_time.collect()
             print(result)
 
-    def filterWalkingTime(self,one_trip):
-        pass
-    
+
     def buildWaitingTimeInDistricts(self):
         self.subway.buildStationNameDistrictMapping('/media/zf72/Seagate Backup Plus Drive/E/DATA/edges/subway station/station_with_region.txt')
         #trip_pair = self.user_trip_pair.flatMap(lambda (k,v): (k,v))
